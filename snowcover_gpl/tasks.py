@@ -89,7 +89,7 @@ def process_sen2cor(input_path):
 
    os.remove(zipped_file)
    storage_manager.delete_file(input_path)
-   celery_app.send_task('geoworker.tasks.process_lis',args=('{}/{}.zip'.format(SCENE_L2A_FOLDER,name),))
+   celery_app.send_task('snowcover_gpl.tasks.process_lis',args=('{}/{}.zip'.format(SCENE_L2A_FOLDER,name),))
    return process.returncode
 
 
