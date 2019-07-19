@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from celery import Celery
 
-app = Celery('geoworker')
+app = Celery('snowcover_gpl')
 
 # Celery settings
 app.conf.accept_content = ['json','pickle']
@@ -27,17 +27,17 @@ app.conf.update(
 #if we add tasks in a module, we have to remember to route them here. For the momment the queues are 
 #selected by module "<modulename>.<task file>.*". We can do it more granularly if we want, but it should be enough
 app.conf.task_routes = {
-   'snowcover-gpl.tasks.*': {'queue': 'snowcover-gpl'},
+   'snowcover_gpl.tasks.*': {'queue': 'snowcover_gpl'},
    'snowcover.tasks.*': {'queue': 'snowcover'},
    'core_app.tasks.*': {'queue': 'django'},
    'api_app.tasks.*': {'queue': 'django'},
 }
 
 #just in case we forget to add some module's tasks to an specific queue
-app.conf.task_default_queue = 'snowcover-gpl'
+app.conf.task_default_queue = 'snowcover_gpl'
 
 #autodiscover tasks (as this instance of celery is not managed by django, we have to specify the modules to look into)
-app.autodiscover_tasks(['snowcover-gpl'])
+app.autodiscover_tasks(['snowcover_gpl'])
 
 
 if __name__ == '__main__':
