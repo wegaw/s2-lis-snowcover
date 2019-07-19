@@ -9,19 +9,24 @@ logger = get_task_logger(__name__)
 import os
 import subprocess
 import zipfile
+import json
 from shutil import rmtree, make_archive, move
 from .storage_manager import GoogleStorageManager
 
-SCENE_BUCKET = 'df-geodata'
-SCENE_L1C_FOLDER='test/L1C'
-SCENE_L2A_FOLDER = 'test/L2A'
-SCENE_LIS_FOLDER = 'test/LIS'
-DATAFOLDER = '/data/'
-DEM_PATH = 'DSMs/SwissDSM.tif'
-MAX_RAM = 8196
-MAX_THREADS = 3
-LIS_OUTPUT_PATH = 'output'
-LIS_PRODUCTS_PATH = 'LIS_PRODUCTS'
+with open(os.environ['CONFIGURATION']) as config_file:
+    data = json.load(config_file)
+
+SCENE_BUCKET = data['SCENE_BUCKET']
+SCENE_L1C_FOLDER= data['SCENE_L1C_FOLDER']
+SCENE_L2A_FOLDER = data['SCENE_L2A_FOLDER']
+SCENE_LIS_FOLDER = data['SCENE_LIS_FOLDER']
+DATAFOLDER = data['DATAFOLDER']
+DEM_PATH = data['DEM_PATH']
+MAX_RAM = data['MAX_RAM']
+MAX_THREADS = data['MAX_THREADS']
+LIS_OUTPUT_PATH = data['LIS_OUTPUT_PATH']
+LIS_PRODUCTS_PATH = data['LIS_PRODUCTS_PATH']
+
 
 
 '''
@@ -66,7 +71,7 @@ def process_sen2cor(input_path):
 
    for root, dirs, files in os.walk(DATAFOLDER):
       for name in dirs:
-         if name.find("S2A")!=-1 or name.find("S2A") !=-1:
+         if name.find("S2A")!=-1 or name.find("S2B") !=-1:
             scene_type, sensing_date, tile = parse_sentinel_filename(name)
             if scene_type=="MSIL2A" and sensing_date == in_sensing_date and tile==in_tile:
                output_dir=os.path.join(root, name)

@@ -7,3 +7,10 @@ __pycache__
 .gcredentials/*
 !.gcredentials/.gitkeep
 .directory
+.env
+.env-staging
+.env-prod
+config-dev.json
+config-staging.json
+config-prod.json
+!.gitkeep
