@@ -1,0 +1,5 @@
+lxml==4.3.4
+matplotlib==2.2.4
+numpy==1.16.4
+celery[redis]==4.3.0
+google-cloud-storage==1.16.1

@@ -1,0 +1,9 @@
+venv
+node_modules
+.vscode
+theia_downloader/lastweek/*
+*.pyc
+__pycache__
+.gcredentials/*
+!.gcredentials/.gitkeep
+.directory

@@ -1,0 +1,15 @@
+version: '3'
+services:
+   geoworker:
+      restart: always
+      build:
+         context: .
+         dockerfile: Dockerfile
+      environment: 
+         - TZ=Europe/Zurich 
+         - C_FORCE_ROOT="true"
+      volumes:
+         - ~/geodata-test:/data
+   # Redis
+   redis:
+      image: redis
