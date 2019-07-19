@@ -71,7 +71,7 @@ def process_sen2cor(input_path):
 
    for root, dirs, files in os.walk(DATAFOLDER):
       for name in dirs:
-         if name.find("S2A")!=-1 or name.find("S2A") !=-1:
+         if name.find("S2A")!=-1 or name.find("S2B") !=-1:
             scene_type, sensing_date, tile = parse_sentinel_filename(name)
             if scene_type=="MSIL2A" and sensing_date == in_sensing_date and tile==in_tile:
                output_dir=os.path.join(root, name)
