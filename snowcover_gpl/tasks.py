@@ -125,7 +125,7 @@ def process_lis(input_path):
    dem_download_path=DATAFOLDER+'dem.tif'
    if not os.path.isfile(dem_download_path):
       storage_manager.download_file(DEM_PATH,dem_download_path)
-   logger.info("DEM downloaded".format(filename))
+   logger.info("DEM downloaded")
 
    output_path = DATAFOLDER+LIS_OUTPUT_PATH
    logger.info("Generating LIS json parameters for {}".format(filename))
