@@ -13,3 +13,4 @@ __pycache__
 config-dev.json
 config-staging.json
 config-prod.json
+!.gitkeep
