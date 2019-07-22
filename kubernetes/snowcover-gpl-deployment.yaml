@@ -28,6 +28,6 @@ spec:
           value: Europe/Zurich
         image: snowcover-gpl
         name: snowcover-gpl
-        resources: {}
+        resources: {} 
       restartPolicy: Always
 status: {}
