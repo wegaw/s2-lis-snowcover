@@ -6,7 +6,7 @@ steps:
   - kms
   - decrypt
   - --ciphertext-file=./config/config-staging.json.enc
-  - --plaintext-file=./secret/config.json
+  - --plaintext-file=./config/config.json
   - --location=global
   - --keyring=df-keyring
   - --key=df-key
