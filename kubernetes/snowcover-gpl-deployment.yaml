@@ -29,5 +29,5 @@ spec:
         image: snowcover-gpl
         name: snowcover-gpl
         resources: {} 
-      restartPolicy: Always
+      restartPolicy: Always 
 status: {}
