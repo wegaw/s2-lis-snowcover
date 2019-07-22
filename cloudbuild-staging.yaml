@@ -1,0 +1,30 @@
+#cloudbuild.yaml
+steps:
+# Decript config.json
+- name: gcr.io/cloud-builders/gcloud
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=./config/config-staging.json.enc
+  - --plaintext-file=./secret/config.json
+  - --location=global
+  - --keyring=df-keyring
+  - --key=df-key
+- name: 'gcr.io/$PROJECT_ID/docker-compose'
+  args: ['build', 'snowcover-gpl']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['tag', 'workspace_snowcover-gpl:latest', 'gcr.io/$PROJECT_ID/snowcover-gpl:$COMMIT_SHA']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/snowcover-gpl:$COMMIT_SHA']
+- name: 'gcr.io/cloud-builders/kubectl'
+  args:
+  - set
+  - image
+  - deployment
+  - snowcover-gpl
+  - snowcover-gpl=gcr.io/$PROJECT_ID/snowcover-gpl:$COMMIT_SHA
+  - --namespace=staging
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=europe-west4-c'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=df-cluster'
+timeout: 1500s
