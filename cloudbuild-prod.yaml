@@ -1,5 +1,15 @@
 #cloudbuild.yaml
 steps:
+# Decript .env
+- name: gcr.io/cloud-builders/gcloud
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=.env.enc
+  - --plaintext-file=.env
+  - --location=global
+  - --keyring=df-keyring
+  - --key=df-key
 # Decript config.json
 - name: gcr.io/cloud-builders/gcloud
   args:
