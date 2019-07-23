@@ -28,6 +28,8 @@ spec:
           value: Europe/Zurich
         image: snowcover-gpl
         name: snowcover-gpl
-        resources: {} 
+        resources: 
+          requests:
+            memory: "3.5Gi" 
       restartPolicy: Always 
 status: {}
