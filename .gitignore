@@ -4,7 +4,7 @@ node_modules
 theia_downloader/lastweek/*
 *.pyc
 __pycache__
-.gcredentials/*
+.gcredentials/*.json
 !.gcredentials/.gitkeep
 .directory
 .env

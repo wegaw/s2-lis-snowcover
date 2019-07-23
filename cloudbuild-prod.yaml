@@ -20,6 +20,15 @@ steps:
   - --location=global
   - --keyring=df-keyring
   - --key=df-key
+- name: gcr.io/cloud-builders/gcloud
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=./.gcredentials/DeFROST-prod-credentials.json.enc
+  - --plaintext-file=./.gcredentials/DeFROST-credentials.json
+  - --location=global
+  - --keyring=df-keyring
+  - --key=df-key 
 - name: 'gcr.io/$PROJECT_ID/docker-compose'
   args: ['build', 'snowcover-gpl']
 - name: 'gcr.io/cloud-builders/docker'
