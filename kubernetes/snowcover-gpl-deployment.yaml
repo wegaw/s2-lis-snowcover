@@ -30,6 +30,6 @@ spec:
         name: snowcover-gpl
         resources: 
           requests:
-            memory: "5Gi" 
+            memory: "4.5Gi" 
       restartPolicy: Always 
 status: {}
