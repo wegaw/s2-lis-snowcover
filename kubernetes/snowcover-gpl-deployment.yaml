@@ -9,7 +9,7 @@ metadata:
     io.kompose.service: snowcover-gpl
   name: snowcover-gpl
 spec:
-  replicas: 1
+  replicas: 3
   strategy:
     type: Recreate
   template:
@@ -30,6 +30,6 @@ spec:
         name: snowcover-gpl
         resources: 
           requests:
-            memory: "3.5Gi" 
+            memory: "4.5Gi" 
       restartPolicy: Always 
 status: {}
