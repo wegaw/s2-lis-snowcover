@@ -49,7 +49,7 @@ def process_sen2cor(input_path):
    if input_path is None:
       return
    if not os.path.exists(DATAFOLDER):
-    os.makedirs(DATAFOLDER)
+      os.makedirs(DATAFOLDER)
    storage_manager = GoogleStorageManager(SCENE_BUCKET)
 
    download_path, filename=download_input_file(input_path, storage_manager)
@@ -116,6 +116,8 @@ def process_sen2cor(input_path):
 def process_lis(input_path):
    if input_path is None:
       return
+   if not os.path.exists(DATAFOLDER):
+      os.makedirs(DATAFOLDER)
    storage_manager = GoogleStorageManager(SCENE_BUCKET)
 
    download_path, filename=download_input_file(input_path, storage_manager)
