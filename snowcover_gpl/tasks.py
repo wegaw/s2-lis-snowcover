@@ -131,7 +131,7 @@ def process_lis(input_path):
       storage_manager.download_file(DEM_PATH,dem_download_path)
    logger.info("DEM downloaded")
 
-   output_path = DATAFOLDER+LIS_OUTPUT_PATH
+   output_path = DATAFOLDER+filename+"_"+LIS_OUTPUT_PATH
    logger.info("Generating LIS json parameters for {}".format(filename))
    #example command: python /usr/local/app/build_json.py -dem /data/srtm_45_05.tif -preprocessing true -nodata 0 -ram 8096 -nb_threads 3 /data/S2A_MSIL2A_20180311T075731_N0206_R035_T38SLH_20180311T101707.SAFE/ /data/output/
    command = "python /usr/local/app/build_json.py -dem {} -preprocessing true -nodata 0 -ram {} -nb_threads {} {} {}".format(
