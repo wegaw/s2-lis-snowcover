@@ -33,6 +33,7 @@ conf_template = {"general":{"pout":"",
                            "cloud_mask":""},
                  "snow":{"dz":100,
                          "ndsi_pass1":0.7,
+                         "swir_pass": 400,
                          "red_pass1":200,
                          "ndsi_pass2":0.15,
                          "red_pass2":40,
@@ -279,6 +280,7 @@ def main():
 
     group_snow = parser.add_argument_group('snow', 'snow parameters')
     group_snow.add_argument("-dz", type=int)
+    group_snow.add_argument("-swir_pass", type=float)
     group_snow.add_argument("-ndsi_pass1", type=float)
     group_snow.add_argument("-red_pass1", type=float)
     group_snow.add_argument("-ndsi_pass2", type=float)
@@ -371,6 +373,8 @@ def main():
         # Override parameters for group snow
         if args.dz:
             jsonData["snow"]["dz"] = args.dz
+        if args.swir_pass:
+            jsonData["snow"]["swir_pass"] = args.swir_pass
         if args.ndsi_pass1:
             jsonData["snow"]["ndsi_pass1"] = args.ndsi_pass1
         if args.red_pass1:
