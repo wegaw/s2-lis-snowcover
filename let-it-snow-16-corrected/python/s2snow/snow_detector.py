@@ -206,6 +206,7 @@ class snow_detector:
         # Parse snow parameters
         snow = data["snow"]
         self.dz = snow.get("dz")
+        self.swir_pass = snow.get("swir_pass")
         self.ndsi_pass1 = snow.get("ndsi_pass1")
         self.rRed_pass1 = snow.get("red_pass1")
         self.rRed_pass1 *= self.multi
@@ -542,7 +543,8 @@ class snow_detector:
         condition_ndsi = "(im2b1!=1 and (" + ndsi_formula + ")>" + str(self.ndsi_pass1) + " "
 
         condition_pass1 = condition_ndsi + \
-            " and im1b" + str(self.nRed) + "> " + str(self.rRed_pass1) + ")"
+            " and im1b" + str(self.nRed) + "> " + str(self.rRed_pass1) + \
+            " and im1b" + str(self.nSWIR) + "< " + str(self.swir_pass) + ")"
 
         bandMathPass1 = band_math(
             [self.img, self.all_cloud_path],

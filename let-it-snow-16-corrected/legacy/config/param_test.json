@@ -22,6 +22,7 @@
     },
     "snow":{
         "dz":100,
+        "swir_pass": 400,
         "ndsi_pass1":0.4,
         "rRed_pass1":200,
         "ndsi_pass2":0.15,
