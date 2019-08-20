@@ -26,6 +26,8 @@ MAX_RAM = data['MAX_RAM']
 MAX_THREADS = data['MAX_THREADS']
 LIS_OUTPUT_PATH = data['LIS_OUTPUT_PATH']
 LIS_PRODUCTS_PATH = data['LIS_PRODUCTS_PATH']
+DEFAULT_RETRY_COUNTDOWN = 5 
+DEFAULT_MAX_RETRIES = 5
 
 
 
@@ -44,55 +46,60 @@ LIS_PRODUCTS_PATH = data['LIS_PRODUCTS_PATH']
    6. Remove L1C image from bucket
    7. Schedule LIS task 
 '''
-@task()
-def process_sen2cor(input_path):
+@task(bind=True, max_retries=DEFAULT_MAX_RETRIES) 
+def process_sen2cor(self, input_path):
    if input_path is None:
       return
-   if not os.path.exists(DATAFOLDER):
-      os.makedirs(DATAFOLDER)
-   storage_manager = GoogleStorageManager(SCENE_BUCKET)
 
-   download_path, filename=download_input_file(input_path, storage_manager)
-   logger.info("Input Scene {} downloaded".format(filename))
-   in_scene_type, in_sensing_date, in_tile = parse_sentinel_filename(filename)
-   unzipped_path = unzip_safe_folder(download_path, DATAFOLDER, filename)
-   logger.info("Input Scene {} unzipped".format(filename))
-   os.remove(download_path)
+   try:
+      if not os.path.exists(DATAFOLDER):
+         os.makedirs(DATAFOLDER)
+      storage_manager = GoogleStorageManager(SCENE_BUCKET)
 
-   logger.info("Applying Sen2cor to {}".format(filename))
-   #example command: /sen2cor/bin/L2A_Process --resolution 10 /data/S2B_MSIL1C_20190714T103029_N0208_R108_T32TMS_20190714T124358.SAFE/
-   command = "/sen2cor/bin/L2A_Process --resolution 10 {}".format(unzipped_path)
-   process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-   process.wait()
-   if process.returncode !=0:
-      logger.error("Error applying Sen2cor to {}".format(filename))
-      return 
-   logger.info("Sen2cor applied to {}".format(filename))
+      download_path, filename=download_input_file(input_path, storage_manager)
+      logger.info("Input Scene {} downloaded".format(filename))
+      in_scene_type, in_sensing_date, in_tile = parse_sentinel_filename(filename)
+      unzipped_path = unzip_safe_folder(download_path, DATAFOLDER, filename)
+      logger.info("Input Scene {} unzipped".format(filename))
+      os.remove(download_path)
 
-   rmtree(unzipped_path)
+      logger.info("Applying Sen2cor to {}".format(filename))
+      #example command: /sen2cor/bin/L2A_Process --resolution 10 /data/S2B_MSIL1C_20190714T103029_N0208_R108_T32TMS_20190714T124358.SAFE/
+      command = "/sen2cor/bin/L2A_Process --resolution 10 {}".format(unzipped_path)
+      process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+      process.wait()
+      if process.returncode !=0:
+         logger.error("Error applying Sen2cor to {}".format(filename))
+         return 
+      logger.info("Sen2cor applied to {}".format(filename))
 
-   for root, dirs, files in os.walk(DATAFOLDER):
-      for name in dirs:
-         if name.find("S2A")!=-1 or name.find("S2B") !=-1:
-            scene_type, sensing_date, tile = parse_sentinel_filename(name)
-            if scene_type=="MSIL2A" and sensing_date == in_sensing_date and tile==in_tile:
-               output_dir=os.path.join(root, name)
+      rmtree(unzipped_path)
 
-   base = os.path.basename(output_dir)
-   name = base.split('.')[0]
-   zipped_file=DATAFOLDER+name+'.zip'
+      for root, dirs, files in os.walk(DATAFOLDER):
+         for name in dirs:
+            if name.find("S2A")!=-1 or name.find("S2B") !=-1:
+               scene_type, sensing_date, tile = parse_sentinel_filename(name)
+               if scene_type=="MSIL2A" and sensing_date == in_sensing_date and tile==in_tile:
+                  output_dir=os.path.join(root, name)
 
-   zip_folder(output_dir,zipped_file)
-   logger.info("Output Scene {} zipped".format(name))
-   rmtree(output_dir)
+      base = os.path.basename(output_dir)
+      name = base.split('.')[0]
+      zipped_file=DATAFOLDER+name+'.zip'
 
-   storage_manager.upload_file(SCENE_L2A_FOLDER,zipped_file)
-   logger.info("Output Scene {} uploaded".format(name))
+      zip_folder(output_dir,zipped_file)
+      logger.info("Output Scene {} zipped".format(name))
+      rmtree(output_dir)
 
-   os.remove(zipped_file)
-   storage_manager.delete_file(input_path)
-   celery_app.send_task('snowcover_gpl.tasks.process_lis',args=('{}/{}.zip'.format(SCENE_L2A_FOLDER,name),))
-   return process.returncode
+      storage_manager.upload_file(SCENE_L2A_FOLDER,zipped_file)
+      logger.info("Output Scene {} uploaded".format(name))
+
+      os.remove(zipped_file)
+      storage_manager.delete_file(input_path)
+      celery_app.send_task('snowcover_gpl.tasks.process_lis',args=('{}/{}.zip'.format(SCENE_L2A_FOLDER,name),))
+      return process.returncode
+   except Exception as e:
+      logger.info('Task failed due to exception: {}'.format(e))
+      self.retry(countdown= DEFAULT_RETRY_COUNTDOWN ** self.request.retries)
 
 
 '''
@@ -112,59 +119,64 @@ def process_sen2cor(input_path):
       a.remove zipped
    8. Remove L2A image from bucket  
 '''
-@task()
-def process_lis(input_path):
+@task(bind=True, max_retries=DEFAULT_MAX_RETRIES) 
+def process_lis(self, input_path):
    if input_path is None:
       return
-   if not os.path.exists(DATAFOLDER):
-      os.makedirs(DATAFOLDER)
-   storage_manager = GoogleStorageManager(SCENE_BUCKET)
 
-   download_path, filename=download_input_file(input_path, storage_manager)
-   logger.info("Input Scene {} downloaded".format(filename))
-   unzipped_path = unzip_safe_folder(download_path, DATAFOLDER, filename)
-   logger.info("Input Scene {} unzipped".format(filename))
-   os.remove(download_path)
+   try:
+      if not os.path.exists(DATAFOLDER):
+         os.makedirs(DATAFOLDER)
+      storage_manager = GoogleStorageManager(SCENE_BUCKET)
 
-   dem_download_path=DATAFOLDER+'dem.tif'
-   if not os.path.isfile(dem_download_path):
-      storage_manager.download_file(DEM_PATH,dem_download_path)
-   logger.info("DEM downloaded")
+      download_path, filename=download_input_file(input_path, storage_manager)
+      logger.info("Input Scene {} downloaded".format(filename))
+      unzipped_path = unzip_safe_folder(download_path, DATAFOLDER, filename)
+      logger.info("Input Scene {} unzipped".format(filename))
+      os.remove(download_path)
 
-   output_path = DATAFOLDER+filename+"_"+LIS_OUTPUT_PATH
-   logger.info("Generating LIS json parameters for {}".format(filename))
-   #example command: python /usr/local/app/build_json.py -dem /data/srtm_45_05.tif -preprocessing true -nodata 0 -ram 8096 -nb_threads 3 /data/S2A_MSIL2A_20180311T075731_N0206_R035_T38SLH_20180311T101707.SAFE/ /data/output/
-   command = "python /usr/local/app/build_json.py -dem {} -preprocessing true -nodata 0 -ram {} -nb_threads {} {} {}".format(
-      dem_download_path,MAX_RAM,MAX_THREADS,unzipped_path, output_path)
-   process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-   process.wait()
-   if process.returncode !=0:
-      logger.error("Error generating LIS json parameters for {}".format(filename))
-      return
-   logger.info("Generated LIS json parameters for {}".format(filename))
+      dem_download_path=DATAFOLDER+'dem.tif'
+      if not os.path.isfile(dem_download_path):
+         storage_manager.download_file(DEM_PATH,dem_download_path)
+      logger.info("DEM downloaded")
 
-   logger.info("Applying LIS to {}".format(filename))
-   # example command: python /usr/local/app/run_snow_detector.py /data/output/param_test.json
-   command = "python /usr/local/app/run_snow_detector.py {}/param_test.json ".format(output_path)
-   process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-   process.wait()
-   if process.returncode !=0:
-      logger.error("Error applying LIS to {}".format(filename))
-      return
-   logger.info("LIS applied to {}. The output is in {}".format(filename,output_path))
+      output_path = DATAFOLDER+filename+"_"+LIS_OUTPUT_PATH
+      logger.info("Generating LIS json parameters for {}".format(filename))
+      #example command: python /usr/local/app/build_json.py -dem /data/srtm_45_05.tif -preprocessing true -nodata 0 -ram 8096 -nb_threads 3 /data/S2A_MSIL2A_20180311T075731_N0206_R035_T38SLH_20180311T101707.SAFE/ /data/output/
+      command = "python /usr/local/app/build_json.py -dem {} -preprocessing true -nodata 0 -ram {} -nb_threads {} {} {}".format(
+         dem_download_path,MAX_RAM,MAX_THREADS,unzipped_path, output_path)
+      process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+      process.wait()
+      if process.returncode !=0:
+         logger.error("Error generating LIS json parameters for {}".format(filename))
+         return
+      logger.info("Generated LIS json parameters for {}".format(filename))
 
-   lis_output_path = output_path+'/'+LIS_PRODUCTS_PATH
-   rmtree(unzipped_path)
-   zipped_file = DATAFOLDER+filename+'_LIS.zip'
-   zip_folder(lis_output_path,zipped_file)
-   logger.info("Output from LIS {} zipped".format(zipped_file))
-   rmtree(output_path)
-   storage_manager.upload_file(SCENE_LIS_FOLDER,zipped_file)
-   logger.info("Output from LIS {} uploaded".format(zipped_file))
-   os.remove(zipped_file)
-   storage_manager.delete_file(input_path)
+      logger.info("Applying LIS to {}".format(filename))
+      # example command: python /usr/local/app/run_snow_detector.py /data/output/param_test.json
+      command = "python /usr/local/app/run_snow_detector.py {}/param_test.json ".format(output_path)
+      process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+      process.wait()
+      if process.returncode !=0:
+         logger.error("Error applying LIS to {}".format(filename))
+         return
+      logger.info("LIS applied to {}. The output is in {}".format(filename,output_path))
 
-   return process.returncode
+      lis_output_path = output_path+'/'+LIS_PRODUCTS_PATH
+      rmtree(unzipped_path)
+      zipped_file = DATAFOLDER+filename+'_LIS.zip'
+      zip_folder(lis_output_path,zipped_file)
+      logger.info("Output from LIS {} zipped".format(zipped_file))
+      rmtree(output_path)
+      storage_manager.upload_file(SCENE_LIS_FOLDER,zipped_file)
+      logger.info("Output from LIS {} uploaded".format(zipped_file))
+      os.remove(zipped_file)
+      storage_manager.delete_file(input_path)
+
+      return process.returncode
+   except Exception as e:
+      logger.info('Task failed due to exception: {}'.format(e))
+      self.retry(countdown= DEFAULT_RETRY_COUNTDOWN ** self.request.retries)
 
 def download_input_file(input_file, storage_manager):  
    base=os.path.basename(input_file)
