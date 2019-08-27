@@ -12,7 +12,7 @@ import zipfile
 import json
 from shutil import rmtree, make_archive, move
 from .storage_manager import GoogleStorageManager
-from .interpolate import applyInterpolationToRaster, applyImputeToRaster, closeSmallGaps
+from .interpolate import closeSmallGaps
 
 with open(os.environ['CONFIGURATION']) as config_file:
     data = json.load(config_file)
@@ -166,10 +166,10 @@ def process_lis(self, input_path):
 
       lis_output_path = os.path.join(output_path,LIS_PRODUCTS_PATH)
 
-      # #apply interpolation to LIS output
-      # raster_to_interpolate = os.path.join(lis_output_path,LIS_OUTPUT_RASTER)
-      # logger.info("Applying impute to LIS OUTPUT for scene {}".format(raster_to_interpolate))
-      # applyImputeToRaster(raster_to_interpolate,lis_output_path)
+      # apply interpolation to LIS output
+      raster_to_interpolate = os.path.join(lis_output_path,LIS_OUTPUT_RASTER)
+      logger.info("Interpolating small cloud gaps in LIS OUTPUT for scene {}".format(raster_to_interpolate))
+      closeSmallGaps(raster_to_interpolate,lis_output_path)
 
       rmtree(unzipped_path)
       zipped_file = DATAFOLDER+filename+'_LIS.zip'
@@ -179,48 +179,9 @@ def process_lis(self, input_path):
       storage_manager.upload_file(SCENE_LIS_FOLDER,zipped_file)
       logger.info("Output from LIS {} uploaded".format(zipped_file))
       os.remove(zipped_file)
-      #storage_manager.delete_file(input_path)
+      storage_manager.delete_file(input_path)
 
       return process.returncode
-   except Exception as e:
-      logger.info('Task failed due to exception: {}'.format(e))
-      self.retry(countdown= DEFAULT_RETRY_COUNTDOWN ** self.request.retries)
-
-@task(bind=True, max_retries=DEFAULT_MAX_RETRIES) 
-def interpolate_lis(self, input_path):
-   if input_path is None:
-      return
-
-   try:
-      if not os.path.exists(DATAFOLDER):
-         os.makedirs(DATAFOLDER)
-      storage_manager = GoogleStorageManager(SCENE_BUCKET)
-
-      download_path, filename=download_input_file(input_path, storage_manager)
-      logger.info("Input Scene {} downloaded".format(filename))
-      unzipped_path = unzip_folder(download_path, DATAFOLDER, filename)
-      logger.info("Input Scene {} unzipped".format(filename))
-      os.remove(download_path)
-
-
-      lis_output_path = os.path.join(DATAFOLDER,LIS_PRODUCTS_PATH)
-
-      #apply interpolation to LIS output
-      raster_to_interpolate = os.path.join(lis_output_path,LIS_OUTPUT_RASTER)
-      logger.info("Applying impute to LIS OUTPUT for scene {}".format(raster_to_interpolate))
-      closeSmallGaps(raster_to_interpolate,lis_output_path)
-
-      #rmtree(unzipped_path)
-      zipped_file = DATAFOLDER+filename+'_LIS_interpolated.zip'
-      zip_folder(lis_output_path,zipped_file)
-      logger.info("Output from LIS {} zipped".format(zipped_file))
-      rmtree(lis_output_path)
-      storage_manager.upload_file(SCENE_LIS_FOLDER,zipped_file)
-      logger.info("Output from LIS {} uploaded".format(zipped_file))
-      os.remove(zipped_file)
-      #storage_manager.delete_file(input_path)
-
-      return True
    except Exception as e:
       logger.info('Task failed due to exception: {}'.format(e))
       self.retry(countdown= DEFAULT_RETRY_COUNTDOWN ** self.request.retries)
