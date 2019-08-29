@@ -12,6 +12,7 @@ import zipfile
 import json
 from shutil import rmtree, make_archive, move
 from .storage_manager import GoogleStorageManager
+from .interpolate import closeSmallGaps
 
 with open(os.environ['CONFIGURATION']) as config_file:
     data = json.load(config_file)
@@ -26,6 +27,7 @@ MAX_RAM = data['MAX_RAM']
 MAX_THREADS = data['MAX_THREADS']
 LIS_OUTPUT_PATH = data['LIS_OUTPUT_PATH']
 LIS_PRODUCTS_PATH = data['LIS_PRODUCTS_PATH']
+LIS_OUTPUT_RASTER = data['LIS_OUTPUT_RASTER']
 DEFAULT_RETRY_COUNTDOWN = 5 
 DEFAULT_MAX_RETRIES = 5
 
@@ -162,7 +164,13 @@ def process_lis(self, input_path):
          return
       logger.info("LIS applied to {}. The output is in {}".format(filename,output_path))
 
-      lis_output_path = output_path+'/'+LIS_PRODUCTS_PATH
+      lis_output_path = os.path.join(output_path,LIS_PRODUCTS_PATH)
+
+      # apply interpolation to LIS output
+      raster_to_interpolate = os.path.join(lis_output_path,LIS_OUTPUT_RASTER)
+      logger.info("Interpolating small cloud gaps in LIS OUTPUT for scene {}".format(raster_to_interpolate))
+      closeSmallGaps(raster_to_interpolate,lis_output_path)
+
       rmtree(unzipped_path)
       zipped_file = DATAFOLDER+filename+'_LIS.zip'
       zip_folder(lis_output_path,zipped_file)
@@ -191,6 +199,12 @@ def unzip_safe_folder(input_file, output_folder, filename):
    unzipped_path = output_folder+filename+'.SAFE'
    return unzipped_path
 
+def unzip_folder(input_file, output_folder, filename):
+   with zipfile.ZipFile(input_file, 'r') as zipObj:
+      zipObj.extractall(output_folder)
+   unzipped_path = output_folder+filename
+   return unzipped_path
+
 def zip_folder(source_folder, output_file):
    base = os.path.basename(output_file)
    name = base.split('.')[0]
@@ -207,3 +221,4 @@ def parse_sentinel_filename(filename):
    sensing_date = splitted[2]
    tile = splitted[5]
    return scene_type, sensing_date, tile
+
