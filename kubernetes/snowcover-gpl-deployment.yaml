@@ -32,4 +32,6 @@ spec:
           requests:
             memory: "4.5Gi" 
       restartPolicy: Always 
+      nodeSelector:
+        cloud.google.com/gke-nodepool: compute-pool
 status: {}
