@@ -124,6 +124,7 @@ class snow_detector:
         gb_path_extracted = extract_band(inputs, "green_band", self.path_tmp, self.nodata)
         rb_path_extracted = extract_band(inputs, "red_band", self.path_tmp, self.nodata)
         sb_path_extracted = extract_band(inputs, "swir_band", self.path_tmp, self.nodata)
+        
 
         # Keep the input product directory basename as product_id
         self.product_id = op.basename(op.dirname(inputs["green_band"]["path"]))
@@ -364,12 +365,12 @@ class snow_detector:
                 logging.info("- label == 8 -> Cloud medium probability")
                 logging.info("- label == 9 -> Cloud high probability")
                 logging.info("- label == 10 -> Thin cirrus")
-                condition_all_clouds = "im1b1==3 || im1b1==8 || im1b1==9 || im1b1==10"
+                condition_all_clouds = "im1b1==3 || (im1b1==8 and (im2b" + str(self.nSWIR) + " > "+ str(self.swir_pass) +")) || im1b1==9 || im1b1==10"
             else:
                 condition_all_clouds = "im1b1 > 0"
-
+#
             bandMathAllCloud = band_math(
-                [self.cloud_init],
+                [self.cloud_init, self.img], 
                 self.all_cloud_path + GDAL_OPT,
                 "("+condition_all_clouds+" > 0)?1:0",
                 self.ram,
@@ -543,8 +544,8 @@ class snow_detector:
         condition_ndsi = "(im2b1!=1 and (" + ndsi_formula + ")>" + str(self.ndsi_pass1) + " "
 
         condition_pass1 = condition_ndsi + \
-            " and im1b" + str(self.nRed) + "> " + str(self.rRed_pass1) + \
-            " and im1b" + str(self.nSWIR) + "< " + str(self.swir_pass) + ")"
+            " and (im1b" + str(self.nRed) + "> " + str(self.rRed_pass1) + \
+            ") and (im1b" + str(self.nSWIR) + "< " + str(self.swir_pass) + "))"
 
         bandMathPass1 = band_math(
             [self.img, self.all_cloud_path],
