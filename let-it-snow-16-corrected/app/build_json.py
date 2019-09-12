@@ -36,7 +36,7 @@ conf_template = {"general":{"pout":"",
                            "cloud_mask":""},
                  "snow":{"dz":100,
                          "ndsi_pass1":0.7,
-                         "swir_pass": 2000,
+                         "swir_pass": 1500,
                          "red_pass1":200,
                          "ndsi_pass2":0.15,
                          "red_pass2":40,
@@ -217,21 +217,21 @@ def read_product(inputPath, mission):
 
         conf_json = conf_template
 
-        # if mission=='SEN2COR':
-        #     cloud_percentage = 0
-        #     metadata = findFiles(inputPath, params["metadata"])[0]
-        #     with open(metadata, 'rt') as f:
-        #         tree = ET.parse(f)
-        #         root = tree.getroot()
+        if mission=='SEN2COR':
+            cloud_percentage = 0
+            metadata = findFiles(inputPath, params["metadata"])[0]
+            with open(metadata, 'rt') as f:
+                tree = ET.parse(f)
+                root = tree.getroot()
 
-        #     for Variable in root.findall('.//Image_Content_QI/MEDIUM_PROBA_CLOUDS_PERCENTAGE'):
-        #         mpcp = float(Variable.text) 
-        #     for Variable in root.findall('.//Image_Content_QI/HIGH_PROBA_CLOUDS_PERCENTAGE'):
-        #         hpcp = float(Variable.text) 
-        #     cloud_percentage = mpcp + hpcp
+            for Variable in root.findall('.//Image_Content_QI/MEDIUM_PROBA_CLOUDS_PERCENTAGE'):
+                mpcp = float(Variable.text) 
+            for Variable in root.findall('.//Image_Content_QI/HIGH_PROBA_CLOUDS_PERCENTAGE'):
+                hpcp = float(Variable.text) 
+            cloud_percentage = mpcp + hpcp
 
-        #     if cloud_percentage < CLOUD_THRESHOLD:
-        #         conf_json["snow"]["swir_pass"] = 4000000
+            if cloud_percentage > CLOUD_THRESHOLD:
+                conf_json["snow"]["swir_pass"] = 400
             
 
 
