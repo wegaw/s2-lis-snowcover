@@ -36,7 +36,7 @@ conf_template = {"general":{"pout":"",
                            "cloud_mask":""},
                  "snow":{"dz":100,
                          "ndsi_pass1":0.7,
-                         "swir_pass": 1500,
+                         "swir_pass": 1600,
                          "red_pass1":200,
                          "ndsi_pass2":0.15,
                          "red_pass2":40,
@@ -231,9 +231,8 @@ def read_product(inputPath, mission):
             cloud_percentage = mpcp + hpcp
 
             if cloud_percentage > CLOUD_THRESHOLD:
-                conf_json["snow"]["swir_pass"] = 400
+                conf_json["snow"]["swir_pass"] = 600
             
-
 
 
         conf_json["general"]["multi"] = params["multi"]

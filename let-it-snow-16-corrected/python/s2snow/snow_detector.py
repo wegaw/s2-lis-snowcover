@@ -367,7 +367,7 @@ class snow_detector:
                 logging.info("- label == 10 -> Thin cirrus")
                 condition_all_clouds = "im1b1==3 || (im1b1==8 and (im2b" + str(self.nSWIR) + " > "+ str(self.swir_pass) +")) || im1b1==9 || im1b1==10"
             else:
-                condition_all_clouds = "im1b1 > 0"
+                condition_all_clouds = "im1b1 > 0" 
 #
             bandMathAllCloud = band_math(
                 [self.cloud_init, self.img], 
