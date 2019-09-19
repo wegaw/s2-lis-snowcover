@@ -75,4 +75,4 @@ ENV PYTHONPATH $PYTHONPATH:/app
 WORKDIR /app
 #Maybe cleanup to save a bit of diskspace?
 
-CMD ["celery", "-A", "snowcover_gpl", "worker", "-Q","snowcover_gpl", "-l","INFO", "--concurrency=1", "--without-gossip", "--without-mingle", "--without-heartbeat"]
+CMD ["celery", "-A", "snowcover_gpl", "worker", "-Q","snowcover_gpl", "-l","INFO", "-O", "fair", "--concurrency=1", "--without-gossip", "--without-mingle", "--without-heartbeat"]

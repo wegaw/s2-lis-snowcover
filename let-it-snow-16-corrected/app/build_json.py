@@ -8,6 +8,9 @@ import json
 import logging
 import argparse
 import zipfile
+from xml.etree import ElementTree as ET
+
+CLOUD_THRESHOLD = 70
 
 ### Configuration Template ###
 conf_template = {"general":{"pout":"",
@@ -32,7 +35,8 @@ conf_template = {"general":{"pout":"",
                            "dem":"",
                            "cloud_mask":""},
                  "snow":{"dz":100,
-                         "ndsi_pass1":0.4,
+                         "ndsi_pass1":0.7,
+                         "swir_pass": 1600,
                          "red_pass1":200,
                          "ndsi_pass2":0.15,
                          "red_pass2":40,
@@ -79,6 +83,7 @@ SEN2COR_parameters = {"mode":"sen2cor",
                  "swir_band":".*_B11_20m.jp2$",
                  "swir_bandNumber":1,
                  "cloud_mask":".*_SCL_20m.jp2$",
+                 "metadata":"MTD_MSIL2A.xml",
                  "dem":"",
                  "shadow_in_mask":3,
                  "shadow_out_mask":3,
@@ -209,7 +214,26 @@ def read_product(inputPath, mission):
     """
     if os.path.exists(inputPath):
         params = mission_parameters[mission]
+
         conf_json = conf_template
+
+        if mission=='SEN2COR':
+            cloud_percentage = 0
+            metadata = findFiles(inputPath, params["metadata"])[0]
+            with open(metadata, 'rt') as f:
+                tree = ET.parse(f)
+                root = tree.getroot()
+
+            for Variable in root.findall('.//Image_Content_QI/MEDIUM_PROBA_CLOUDS_PERCENTAGE'):
+                mpcp = float(Variable.text) 
+            for Variable in root.findall('.//Image_Content_QI/HIGH_PROBA_CLOUDS_PERCENTAGE'):
+                hpcp = float(Variable.text) 
+            cloud_percentage = mpcp + hpcp
+
+            if cloud_percentage > CLOUD_THRESHOLD:
+                conf_json["snow"]["swir_pass"] = 600
+            
+
 
         conf_json["general"]["multi"] = params["multi"]
         conf_json["inputs"]["green_band"]["path"] = findFiles(inputPath, params["green_band"])[0]
@@ -279,6 +303,7 @@ def main():
 
     group_snow = parser.add_argument_group('snow', 'snow parameters')
     group_snow.add_argument("-dz", type=int)
+    group_snow.add_argument("-swir_pass", type=float)
     group_snow.add_argument("-ndsi_pass1", type=float)
     group_snow.add_argument("-red_pass1", type=float)
     group_snow.add_argument("-ndsi_pass2", type=float)
@@ -371,6 +396,8 @@ def main():
         # Override parameters for group snow
         if args.dz:
             jsonData["snow"]["dz"] = args.dz
+        if args.swir_pass:
+            jsonData["snow"]["swir_pass"] = args.swir_pass
         if args.ndsi_pass1:
             jsonData["snow"]["ndsi_pass1"] = args.ndsi_pass1
         if args.red_pass1:
