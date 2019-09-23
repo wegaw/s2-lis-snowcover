@@ -167,7 +167,7 @@ def process_lis(self, input_path):
             total_cloud_percentage = conf_json["cloud"]["total_cloud_percentage"]
             if total_cloud_percentage > IGNORE_SCENE_CLOUD_THRESHOLD:
                logger.info("Scene {} is too cloudy with a cloud percentace of {}. Ignoring this scene".format(filename, total_cloud_percentage))
-               rmtree(unzipped_path)
+               rmtree(unzipped_path) 
                rmtree(output_path)
                storage_manager.delete_file(input_path)
                return
