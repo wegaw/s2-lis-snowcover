@@ -37,7 +37,7 @@ conf_template = {"general":{"pout":"",
                  "snow":{"dz":100,
                          "ndsi_pass1":0.7,
                          "swir_pass": 1600,
-                         "red_pass1":200,
+                         "red_pass1":200,                        
                          "ndsi_pass2":0.15,
                          "red_pass2":40,
                          "fsnow_lim":0.1,
@@ -54,7 +54,8 @@ conf_template = {"general":{"pout":"",
                           "rm_snow_inside_cloud":False,
                           "rm_snow_inside_cloud_dilation_radius":1,
                           "rm_snow_inside_cloud_threshold":0.85,
-                          "rm_snow_inside_cloud_min_area":5000}}
+                          "rm_snow_inside_cloud_min_area":5000,
+                          "total_cloud_percentage":0}}
 
 
 ### Mission Specific Parameters ###
@@ -228,10 +229,15 @@ def read_product(inputPath, mission):
                 mpcp = float(Variable.text) 
             for Variable in root.findall('.//Image_Content_QI/HIGH_PROBA_CLOUDS_PERCENTAGE'):
                 hpcp = float(Variable.text) 
-            cloud_percentage = mpcp + hpcp
+            for Variable in root.findall('.//Image_Content_QI/THIN_CIRRUS_PERCENTAGE'):
+                tcp = float(Variable.text)
+            cloud_percentage = mpcp + hpcp 
+            total_cloud_percentage = cloud_percentage + tcp
 
             if cloud_percentage > CLOUD_THRESHOLD:
                 conf_json["snow"]["swir_pass"] = 600
+
+            conf_json["cloud"]["total_cloud_percentage"] = total_cloud_percentage
             
 
 

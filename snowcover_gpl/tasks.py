@@ -31,6 +31,7 @@ LIS_OUTPUT_RASTER = data['LIS_OUTPUT_RASTER']
 DEFAULT_RETRY_COUNTDOWN = 5 
 DEFAULT_MAX_RETRIES = 5
 
+IGNORE_SCENE_CLOUD_THRESHOLD = 90
 
 
 '''
@@ -151,8 +152,25 @@ def process_lis(self, input_path):
       process.wait()
       if process.returncode !=0:
          logger.error("Error generating LIS json parameters for {}".format(filename))
+         rmtree(unzipped_path)
+         rmtree(output_path)
          return
       logger.info("Generated LIS json parameters for {}".format(filename))
+      
+
+      # If cloud coverage over a threshold the image is discarded
+      logger.info("Verifying if scene {} should be treated".format(filename))
+      jsonfile=os.path.join(output_path,'param_test.json')
+      if os.path.exists(jsonfile):
+         with open(jsonfile) as json_data:
+            conf_json = json.load(json_data)
+            total_cloud_percentage = conf_json["cloud"]["total_cloud_percentage"]
+            if total_cloud_percentage > IGNORE_SCENE_CLOUD_THRESHOLD:
+               logger.info("Scene {} is too cloudy with a cloud percentace of {}. Ignoring this scene".format(filename, total_cloud_percentage))
+               rmtree(unzipped_path) 
+               rmtree(output_path)
+               storage_manager.delete_file(input_path)
+               return
 
       logger.info("Applying LIS to {}".format(filename))
       # example command: python /usr/local/app/run_snow_detector.py /data/output/param_test.json
@@ -161,6 +179,8 @@ def process_lis(self, input_path):
       process.wait()
       if process.returncode !=0:
          logger.error("Error applying LIS to {}".format(filename))
+         rmtree(unzipped_path)
+         rmtree(output_path)
          return
       logger.info("LIS applied to {}. The output is in {}".format(filename,output_path))
 
