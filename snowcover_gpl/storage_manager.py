@@ -57,3 +57,7 @@ class GoogleStorageManager:
       """Delete file from GCP bucket."""
       self.bucket.delete_blob(file_path)
       logger.info('{} deleted from bucket.'.format(file_path))
+   
+   def copy_file(self, source_file_path, destination_file_path):
+        blob = self.bucket.blob(source_file_path)
+        new_blob = self.bucket.copy_blob(blob, self.bucket, destination_file_path)
