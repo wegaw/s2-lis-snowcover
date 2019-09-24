@@ -21,6 +21,7 @@ SCENE_BUCKET = data['SCENE_BUCKET']
 SCENE_L1C_FOLDER= data['SCENE_L1C_FOLDER']
 SCENE_L2A_FOLDER = data['SCENE_L2A_FOLDER']
 SCENE_LIS_FOLDER = data['SCENE_LIS_FOLDER']
+SCENE_DISCARDED_FOLDER = data['SCENE_DISCARDED_FOLDER']
 DATAFOLDER = data['DATAFOLDER']
 DEM_PATH = data['DEM_PATH']
 MAX_RAM = data['MAX_RAM']
@@ -169,6 +170,7 @@ def process_lis(self, input_path):
                logger.info("Scene {} is too cloudy with a cloud percentace of {}. Ignoring this scene".format(filename, total_cloud_percentage))
                rmtree(unzipped_path) 
                rmtree(output_path)
+               storage_manager.copy_file(input_path, input_path.replace(SCENE_L2A_FOLDER, SCENE_DISCARDED_FOLDER))
                storage_manager.delete_file(input_path)
                return
 
