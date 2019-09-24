@@ -170,7 +170,6 @@ def process_lis(self, input_path):
                logger.info("Scene {} is too cloudy with a cloud percentace of {}. Ignoring this scene".format(filename, total_cloud_percentage))
                rmtree(unzipped_path) 
                rmtree(output_path)
-               logger.info(input_path.replace(SCENE_L2A_FOLDER, SCENE_DISCARDED_FOLDER))
                storage_manager.copy_file(input_path, input_path.replace(SCENE_L2A_FOLDER, SCENE_DISCARDED_FOLDER))
                storage_manager.delete_file(input_path)
                return
