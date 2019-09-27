@@ -460,7 +460,7 @@ class snow_detector:
             logging.info("- label == 8 -> Cloud medium probability")
             logging.info("- label == 9 -> Cloud high probability")
             logging.info("- label == 10 -> Thin cirrus")
-            condition_all_clouds = "im1b1==3 || im1b1==8 || im1b1==9 || im1b1==10"
+            condition_all_clouds = "im1b1==3 || im1b1==8 || im1b1==9 || im1b1==10 || im1b1==11"
         else:
             condition_all_clouds = "im1b1 > 0"
             
