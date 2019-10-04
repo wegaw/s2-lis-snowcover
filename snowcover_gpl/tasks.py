@@ -103,7 +103,7 @@ def process_sen2cor(self, input_path, **kwargs):
 
       os.remove(zipped_file)
       storage_manager.delete_file(input_path)
-      celery_app.send_task('snowcover_gpl.tasks.process_lis',args=('{}/{}.zip'.format(SCENE_L2A_FOLDER,name),),kwargs={'release':'{}'.format(release)})
+      celery_app.send_task('snowcover_gpl.tasks.process_lis',args=('{}/{}.zip'.format(upload_folder,name),),kwargs={'release':'{}'.format(release)})
       return process.returncode
    except Exception as e:
       logger.info('Task failed due to exception: {}'.format(e))
