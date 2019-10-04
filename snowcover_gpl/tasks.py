@@ -51,10 +51,10 @@ IGNORE_SCENE_CLOUD_THRESHOLD = 90
    7. Schedule LIS task 
 '''
 @task(bind=True, max_retries=DEFAULT_MAX_RETRIES) 
-def process_sen2cor(self, input_path):
+def process_sen2cor(self, input_path, **kwargs):
    if input_path is None:
       return
-
+   release = kwargs.get('release', None)
    try:
       if not os.path.exists(DATAFOLDER):
          os.makedirs(DATAFOLDER)
@@ -94,12 +94,16 @@ def process_sen2cor(self, input_path):
       logger.info("Output Scene {} zipped".format(name))
       rmtree(output_dir)
 
-      storage_manager.upload_file(SCENE_L2A_FOLDER,zipped_file)
+      if release:
+         upload_folder = os.path.join(SCENE_L2A_FOLDER,release)
+      else:
+         upload_folder = SCENE_L2A_FOLDER
+      storage_manager.upload_file(upload_folder,zipped_file)
       logger.info("Output Scene {} uploaded".format(name))
 
       os.remove(zipped_file)
       storage_manager.delete_file(input_path)
-      celery_app.send_task('snowcover_gpl.tasks.process_lis',args=('{}/{}.zip'.format(SCENE_L2A_FOLDER,name),))
+      celery_app.send_task('snowcover_gpl.tasks.process_lis',args=('{}/{}.zip'.format(SCENE_L2A_FOLDER,name),),kwargs={'release':'{}'.format(release)})
       return process.returncode
    except Exception as e:
       logger.info('Task failed due to exception: {}'.format(e))
@@ -124,10 +128,10 @@ def process_sen2cor(self, input_path):
    8. Remove L2A image from bucket  
 '''
 @task(bind=True, max_retries=DEFAULT_MAX_RETRIES) 
-def process_lis(self, input_path):
+def process_lis(self, input_path, **kwargs):
    if input_path is None:
       return
-
+   release = kwargs.get('release', None)
    try:
       if not os.path.exists(DATAFOLDER):
          os.makedirs(DATAFOLDER)
@@ -198,10 +202,15 @@ def process_lis(self, input_path):
       zip_folder(lis_output_path,zipped_file)
       logger.info("Output from LIS {} zipped".format(zipped_file))
       rmtree(output_path)
-      storage_manager.upload_file(SCENE_LIS_FOLDER,zipped_file)
+
+      if release:
+         upload_folder = os.path.join(SCENE_LIS_FOLDER,release)
+      else:
+         upload_folder = SCENE_LIS_FOLDER
+      storage_manager.upload_file(upload_folder,zipped_file)
       logger.info("Output from LIS {} uploaded".format(zipped_file))
       os.remove(zipped_file)
-      storage_manager.delete_file(input_path)
+      #storage_manager.delete_file(input_path)
 
       return process.returncode
    except Exception as e:
