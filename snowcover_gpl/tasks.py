@@ -210,7 +210,7 @@ def process_lis(self, input_path, **kwargs):
       storage_manager.upload_file(upload_folder,zipped_file)
       logger.info("Output from LIS {} uploaded".format(zipped_file))
       os.remove(zipped_file)
-      #storage_manager.delete_file(input_path)
+      storage_manager.delete_file(input_path)
 
       return process.returncode
    except Exception as e:
