@@ -26,7 +26,7 @@ RUN pip uninstall gdal -y \
 COPY let-it-snow-16-corrected /let-it-snow
 
 # download and istall OTB
-RUN wget https://www.orfeo-toolbox.org/packages/OTB-6.6.1-Linux64.run \
+RUN wget https://www.orfeo-toolbox.org/packages/archives/OTB/OTB-6.6.1-Linux64.run \
    && chmod +x OTB-6.6.1-Linux64.run \
    && ./OTB-6.6.1-Linux64.run \
    && rm OTB-6.6.1-Linux64.run \
